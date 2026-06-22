@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Glass Music Widget</string>
+    <string name="widget_label">Glass Music</string>
+    <string name="widget_description">YouTube Music 재생 정보를 표시하는 글래스모피즘 위젯입니다.</string>
+    <string name="widget_empty_state">재생 중인 곡이 없습니다</string>
+
+    <string name="main_title">Glass Music Widget</string>
+    <string name="main_subtitle">YouTube Music 전용 글래스 위젯</string>
+    <string name="main_permission_granted">알림 접근 권한이 허용되어 있습니다</string>
+    <string name="main_permission_denied">알림 접근 권한이 필요합니다</string>
+    <string name="main_permission_description">위젯이 YouTube Music의 재생 정보를 읽으려면 알림 접근 권한을 허용해야 합니다.</string>
+    <string name="main_open_settings">알림 접근 권한 설정 열기</string>
+    <string name="main_now_playing_header">현재 재생 중</string>
+    <string name="main_nothing_playing">YouTube Music에서 재생 중인 곡이 없습니다</string>
+    <string name="main_add_widget_hint">홈 화면을 길게 눌러 \'Glass Music\' 위젯을 추가하세요. 2x2, 4x2, 4x3, 5x3, 5x4 크기를 지원합니다.</string>
+</resources>
