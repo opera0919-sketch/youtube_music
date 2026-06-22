@@ -1,5 +1,6 @@
 package com.glasswidget.music.widget.ui
 
+import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -28,7 +29,7 @@ fun ProgressSection(track: NowPlayingTrack) {
         }
         while (true) {
             val elapsedSincePlaybackEvent =
-                ((System.currentTimeMillis() - track.lastPositionUpdateTime) * track.playbackSpeed).toLong()
+                ((SystemClock.elapsedRealtime() - track.lastPositionUpdateTime) * track.playbackSpeed).toLong()
             val cap = track.durationMs.takeIf { it > 0 } ?: Long.MAX_VALUE
             value = (track.positionMs + elapsedSincePlaybackEvent).coerceIn(0, cap)
             delay(1_000)

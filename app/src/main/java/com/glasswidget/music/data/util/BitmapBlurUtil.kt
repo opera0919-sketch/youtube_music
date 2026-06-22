@@ -12,15 +12,20 @@ object BitmapBlurUtil {
     private const val DOWNSCALE = 0.25f
     private const val PASSES = 3
 
+    /**
+     * Returns the blurred bitmap at downscaled resolution rather than
+     * upscaling back to [source]'s size: the blur hides the low-res
+     * artifacts when the widget stretches it to fill the backdrop, and
+     * keeping it small avoids bloating the RemoteViews payload sent to the
+     * widget host.
+     */
     fun blur(source: Bitmap, radius: Int): Bitmap {
         val scaledWidth = (source.width * DOWNSCALE).toInt().coerceAtLeast(1)
         val scaledHeight = (source.height * DOWNSCALE).toInt().coerceAtLeast(1)
         val downscaled = Bitmap.createScaledBitmap(source, scaledWidth, scaledHeight, true)
 
         val blurRadius = (radius * DOWNSCALE).toInt().coerceAtLeast(1)
-        val blurred = boxBlur(downscaled, blurRadius)
-
-        return Bitmap.createScaledBitmap(blurred, source.width, source.height, true)
+        return boxBlur(downscaled, blurRadius)
     }
 
     private fun boxBlur(bitmap: Bitmap, radius: Int): Bitmap {

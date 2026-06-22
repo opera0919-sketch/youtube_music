@@ -3,6 +3,7 @@ package com.glasswidget.music.data.mediasession
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.PlaybackState
+import android.os.SystemClock
 import com.glasswidget.music.core.ApplicationScope
 import com.glasswidget.music.data.album.AlbumArtResolver
 import com.glasswidget.music.data.mapper.mapPlaybackStateToStatus
@@ -66,7 +67,10 @@ class NowPlayingDataSource @Inject constructor(
         albumArtJob = scope.launch {
             val embedded = metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
             val artUri = metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)
-            val resolved = albumArtResolver.resolve(embedded, artUri)
+            // Coil/Palette failures (bad URI, decode error, ...) shouldn't take
+            // down the @ApplicationScope SupervisorJob's uncaught exception
+            // handler; just skip the art update for this track.
+            val resolved = runCatching { albumArtResolver.resolve(embedded, artUri) }.getOrNull() ?: return@launch
             _nowPlaying.value = _nowPlaying.value?.copy(
                 albumArt = resolved.foreground,
                 albumArtBackground = resolved.blurredBackground,
@@ -81,7 +85,9 @@ class NowPlayingDataSource @Inject constructor(
             playbackStatus = mapPlaybackStateToStatus(state?.state),
             positionMs = state?.position ?: current.positionMs,
             playbackSpeed = state?.playbackSpeed ?: current.playbackSpeed,
-            lastPositionUpdateTime = state?.lastPositionUpdateTime ?: System.currentTimeMillis()
+            // PlaybackState.lastPositionUpdateTime is on the
+            // SystemClock.elapsedRealtime() clock, not the wall clock.
+            lastPositionUpdateTime = state?.lastPositionUpdateTime ?: SystemClock.elapsedRealtime()
         )
     }
 }

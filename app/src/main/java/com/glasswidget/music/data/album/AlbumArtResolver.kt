@@ -18,6 +18,8 @@ data class ResolvedAlbumArt(
     val isLightArtwork: Boolean
 )
 
+private const val MAX_FOREGROUND_DIMENSION = 256
+
 /**
  * Resolves the sharp foreground artwork, a blurred background copy (for the
  * glassmorphism backdrop) and a light/dark hint used to pick a readable text
@@ -30,15 +32,29 @@ class AlbumArtResolver @Inject constructor(
 ) {
 
     suspend fun resolve(embeddedBitmap: Bitmap?, artUri: String?): ResolvedAlbumArt {
-        val art = embeddedBitmap ?: artUri?.let { loadFromUri(it) }
+        val rawArt = embeddedBitmap ?: artUri?.let { loadFromUri(it) }
             ?: return ResolvedAlbumArt(foreground = null, blurredBackground = null, isLightArtwork = false)
 
+        // Source art (e.g. a 1024x1024 MediaMetadata bitmap) is far larger
+        // than anything the widget displays. Downscaling before it enters a
+        // RemoteViews tree keeps the payload well under the Binder
+        // transaction / widget bitmap-memory limits.
+        val art = downscale(rawArt, MAX_FOREGROUND_DIMENSION)
         val blurred = BitmapBlurUtil.blur(art, Constants.ALBUM_ART_BLUR_RADIUS)
         return ResolvedAlbumArt(
             foreground = art,
             blurredBackground = blurred,
             isLightArtwork = isLightArtwork(art)
         )
+    }
+
+    private fun downscale(bitmap: Bitmap, maxDimension: Int): Bitmap {
+        val largestSide = maxOf(bitmap.width, bitmap.height)
+        if (largestSide <= maxDimension) return bitmap
+        val scale = maxDimension.toFloat() / largestSide
+        val width = (bitmap.width * scale).toInt().coerceAtLeast(1)
+        val height = (bitmap.height * scale).toInt().coerceAtLeast(1)
+        return Bitmap.createScaledBitmap(bitmap, width, height, true)
     }
 
     private suspend fun loadFromUri(uri: String): Bitmap? = runCatching {
